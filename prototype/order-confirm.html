@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="navbar-brand">ProPlay<span>Hub</span></a>
+  </div>
+</nav>
+
+<main>
+  <div class="form-card text-center" style="max-width:540px;">
+    <div style="font-size:3.5rem; margin-bottom:0.75rem;">✅</div>
+    <h1 style="color:var(--success);">Payment Successful!</h1>
+    <p class="text-muted mt-1">Your ProPlayHub subscription is now active.</p>
+
+    <div class="alert alert-info mt-3" style="text-align:left;">
+      <strong>📧 Receipt Sent</strong><br>
+      A receipt has been sent to your registered email address.<br>
+      <span style="font-size:0.82rem; opacity:0.8;">(Simulated — prototype only)</span>
+    </div>
+
+    <div class="card mt-3" style="text-align:left;">
+      <div class="card-title">Order Receipt</div>
+      <div class="profile-row"><span class="label">Order ID</span><span class="value" id="r-orderid">—</span></div>
+      <div class="profile-row"><span class="label">Plan</span><span class="value" id="r-plan">—</span></div>
+      <div class="profile-row"><span class="label">Amount Paid</span><span class="value text-accent" id="r-amount">—</span></div>
+      <div class="profile-row"><span class="label">Payment Method</span><span class="value" id="r-card">—</span></div>
+      <div class="profile-row"><span class="label">Date</span><span class="value" id="r-date">—</span></div>
+    </div>
+
+    <div class="flex-center gap-2 mt-3">
+      <a href="account.html" class="btn btn-primary">My Account</a>
+      <a href="deals.html" class="btn btn-outline">View Deals</a>
+    </div>
+  </div>
+</main>
+
+<footer class="footer"><div class="container">© 2025 ProPlayHub</div></footer>
+
+<script src="auth.js"></script>
+<script>
+  const totals  = JSON.parse(sessionStorage.getItem('pph_totals')  || '{}');
+  const payment = JSON.parse(sessionStorage.getItem('pph_payment') || '{}');
+
+  document.getElementById('r-orderid').textContent = 'PPH-' + Math.floor(Math.random() * 900000 + 100000);
+  document.getElementById('r-plan').textContent    = (totals.packageName || '—') + ' Plan';
+  document.getElementById('r-amount').textContent  = totals.total ? '£' + Number(totals.total).toFixed(2) + '/mo' : '—';
+  document.getElementById('r-card').textContent    = payment.last4 ? `VISA ending ****${payment.last4}` : '—';
+  document.getElementById('r-date').textContent    = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' });
+
+  // Clear session cart
+  sessionStorage.removeItem('pph_order');
+  sessionStorage.removeItem('pph_totals');
+  sessionStorage.removeItem('pph_payment');
+</script>
+<script src="chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Packages — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="navbar-brand">ProPlay<span>Hub</span></a>
+    <ul class="navbar-links">
+      <li><a href="packages.html" class="active">Packages</a></li>
+      <li><a href="deals.html">Deals</a></li>
+    </ul>
+    <div class="navbar-actions" id="nav-actions"></div>
+  </div>
+</nav>
+
+<main>
+  <div class="page-hero">
+    <div class="container">
+      <h1>Choose Your Plan</h1>
+      <p>All plans include a <span class="text-accent" style="font-weight:700;">15% discount</span> when ordering via the app. No contracts — cancel anytime.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div id="package-grid" class="package-grid"></div>
+
+      <div class="card mt-3">
+        <div class="section-title">Add-ons</div>
+        <p class="text-muted mb-2" style="font-size:0.88rem;">Enhance your plan with optional extras. Add-ons are billed monthly alongside your subscription.</p>
+        <div id="addon-list" class="addon-list"></div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="section-title">Price Summary</div>
+        <table class="summary-table">
+          <tr><td>Base Plan</td><td id="s-base">—</td></tr>
+          <tr><td>Add-ons</td><td id="s-addons">£0.00</td></tr>
+          <tr class="total-row"><td>Monthly Total</td><td id="s-total">—</td></tr>
+        </table>
+        <p class="text-muted mt-1" style="font-size:0.8rem;">* App discount of 15% applied at checkout</p>
+        <button id="continue-btn" class="btn btn-primary btn-lg mt-2" disabled onclick="goCheckout()">Continue to Checkout</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer"><div class="container">© 2025 ProPlayHub</div></footer>
+
+<script src="auth.js"></script>
+<script src="discount.js"></script>
+<script>
+  // Nav
+  const navActions = document.getElementById('nav-actions');
+  navActions.innerHTML = isLoggedIn()
+    ? `<a href="account.html" class="btn btn-outline btn-sm">My Account</a><button onclick="logout()" class="btn btn-outline btn-sm">Logout</button>`
+    : `<a href="login.html" class="btn btn-outline btn-sm">Login</a><a href="register.html" class="btn btn-primary btn-sm">Register</a>`;
+
+  let selectedPackage = null;
+  let selectedAddons  = [];
+
+  // Render packages
+  const grid = document.getElementById('package-grid');
+  PACKAGES.forEach(pkg => {
+    const card = document.createElement('div');
+    card.className = 'package-card' + (pkg.popular ? ' popular' : '');
+    card.id = 'pkg-' + pkg.id;
+    card.innerHTML = `
+      <div class="package-name">${pkg.name}</div>
+      <div class="package-price">£${pkg.price.toFixed(2)}<span>/mo</span></div>
+      <ul class="package-features mt-2">
+        ${pkg.features.map(f => `<li>${f}</li>`).join('')}
+      </ul>
+      <button class="btn btn-primary btn-block mt-2">Select ${pkg.name}</button>
+    `;
+    card.addEventListener('click', () => selectPackage(pkg.id));
+    grid.appendChild(card);
+  });
+
+  // Render add-ons
+  const addonList = document.getElementById('addon-list');
+  ADDONS.forEach(a => {
+    const item = document.createElement('div');
+    item.className = 'addon-item';
+    item.id = 'addon-' + a.id;
+    item.innerHTML = `
+      <input type="checkbox" id="chk-${a.id}">
+      <label class="addon-label" for="chk-${a.id}">${a.label}</label>
+      <span class="addon-price">+£${a.price.toFixed(2)}/mo</span>
+    `;
+    item.addEventListener('click', () => toggleAddon(a.id, item));
+    addonList.appendChild(item);
+  });
+
+  function selectPackage(id) {
+    selectedPackage = PACKAGES.find(p => p.id === id);
+    document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('pkg-' + id).classList.add('selected');
+    document.getElementById('continue-btn').disabled = false;
+    updateSummary();
+  }
+
+  function toggleAddon(id, item) {
+    const chk = document.getElementById('chk-' + id);
+    chk.checked = !chk.checked;
+    item.classList.toggle('selected', chk.checked);
+    if (chk.checked) { selectedAddons.push(id); }
+    else { selectedAddons = selectedAddons.filter(x => x !== id); }
+    updateSummary();
+  }
+
+  function updateSummary() {
+    if (!selectedPackage) return;
+    const addonsTotal = selectedAddons.reduce((s, id) => {
+      const a = ADDONS.find(x => x.id === id);
+      return s + (a ? a.price : 0);
+    }, 0);
+    const base = selectedPackage.price;
+    document.getElementById('s-base').textContent   = fmt(base);
+    document.getElementById('s-addons').textContent = fmt(addonsTotal);
+    document.getElementById('s-total').textContent  = fmt(base + addonsTotal);
+  }
+
+  function goCheckout() {
+    if (!selectedPackage) return;
+    sessionStorage.setItem('pph_order', JSON.stringify({
+      packageId: selectedPackage.id,
+      addons: selectedAddons
+    }));
+    window.location.href = 'checkout.html';
+  }
+</script>
+<script src="chat.js"></script>
+</body>
+</html>

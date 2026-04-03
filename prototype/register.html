@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="navbar-brand">ProPlay<span>Hub</span></a>
+    <ul class="navbar-links"></ul>
+    <div class="navbar-actions">
+      <a href="login.html" class="btn btn-outline btn-sm">Already have an account?</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="form-card" style="max-width:540px;">
+    <h1>Create Account</h1>
+    <p class="subtitle">Join ProPlayHub and level up your gaming</p>
+
+    <div id="alert-area"></div>
+
+    <form id="register-form" novalidate>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Username <span class="required">*</span></label>
+          <input type="text" id="username" class="form-control" placeholder="gamer_tag">
+          <div class="field-error" id="err-username"></div>
+        </div>
+        <div class="form-group">
+          <label>Age <span class="required">*</span></label>
+          <input type="number" id="age" class="form-control" placeholder="18" min="13" max="100">
+          <div class="field-error" id="err-age"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address <span class="required">*</span></label>
+        <input type="email" id="email" class="form-control" placeholder="you@example.com">
+        <div class="field-error" id="err-email"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Password <span class="required">*</span></label>
+        <input type="password" id="password" class="form-control" placeholder="Min 8 characters">
+        <div class="field-error" id="err-password"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Location <span class="required">*</span></label>
+        <select id="location" class="form-control">
+          <option value="">— Select country —</option>
+          <option>United Kingdom</option>
+          <option>United States</option>
+          <option>Vietnam</option>
+          <option>Germany</option>
+          <option>France</option>
+          <option>Australia</option>
+          <option>Other</option>
+        </select>
+        <div class="field-error" id="err-location"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Primary Gaming Platform <span class="required">*</span></label>
+        <select id="platform" class="form-control">
+          <option value="">— Select platform —</option>
+          <option>PC</option>
+          <option>PlayStation</option>
+          <option>Xbox</option>
+          <option>Nintendo Switch</option>
+          <option>Mobile</option>
+        </select>
+        <div class="field-error" id="err-platform"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Payment Method <span class="required">*</span></label>
+        <select id="payment-method" class="form-control">
+          <option value="">— Select method —</option>
+          <option>VISA</option>
+          <option>Mastercard</option>
+          <option>PayPal</option>
+        </select>
+        <div class="field-error" id="err-payment"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg mt-2">Create Account</button>
+    </form>
+
+    <p class="text-center mt-2 text-muted" style="font-size:0.85rem;">
+      Already registered? <a href="login.html">Login here</a>
+    </p>
+  </div>
+</main>
+
+<footer class="footer"><div class="container">© 2025 ProPlayHub</div></footer>
+
+<script src="auth.js"></script>
+<script>
+  requireGuest();
+
+  const form = document.getElementById('register-form');
+
+  function showErr(id, msg) {
+    const el = document.getElementById('err-' + id);
+    el.textContent = msg;
+    el.classList.add('show');
+    document.getElementById(id === 'payment' ? 'payment-method' : id).classList.add('is-invalid');
+  }
+
+  function clearErrs() {
+    document.querySelectorAll('.field-error').forEach(e => { e.classList.remove('show'); e.textContent = ''; });
+    document.querySelectorAll('.form-control').forEach(e => e.classList.remove('is-invalid', 'is-valid'));
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    clearErrs();
+    let valid = true;
+
+    const username = document.getElementById('username').value.trim();
+    const age      = parseInt(document.getElementById('age').value);
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const location = document.getElementById('location').value;
+    const platform = document.getElementById('platform').value;
+    const payment  = document.getElementById('payment-method').value;
+
+    if (!username || username.length < 3) { showErr('username', 'Username must be at least 3 characters.'); valid = false; }
+    if (!age || age < 13 || age > 100)    { showErr('age', 'Age must be between 13 and 100.');              valid = false; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('email', 'Enter a valid email address.'); valid = false; }
+    if (!password || password.length < 8) { showErr('password', 'Password must be at least 8 characters.');  valid = false; }
+    if (!location) { showErr('location', 'Please select your location.');       valid = false; }
+    if (!platform) { showErr('platform', 'Please select your platform.');       valid = false; }
+    if (!payment)  { showErr('payment',  'Please select a payment method.');    valid = false; }
+
+    if (!valid) return;
+
+    register({ username, age, email, password, location, platform, paymentMethod: payment });
+    window.location.href = 'confirmation.html';
+  });
+</script>
+<script src="chat.js"></script>
+</body>
+</html>

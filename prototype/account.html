@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="navbar-brand">ProPlay<span>Hub</span></a>
+    <ul class="navbar-links">
+      <li><a href="packages.html">Packages</a></li>
+      <li><a href="deals.html">Deals</a></li>
+      <li><a href="account.html" class="active">My Account</a></li>
+    </ul>
+    <div class="navbar-actions">
+      <button onclick="logout()" class="btn btn-outline btn-sm">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <section class="section">
+    <div class="container" style="max-width:700px;">
+      <div class="section-title">My Profile</div>
+
+      <!-- View mode -->
+      <div id="view-mode">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div>
+              <div style="font-size:1.4rem; font-weight:700;" id="v-username">—</div>
+              <div class="text-muted" style="font-size:0.85rem;" id="v-email">—</div>
+            </div>
+            <button onclick="toggleEdit(true)" class="btn btn-outline btn-sm">Edit Profile</button>
+          </div>
+          <div class="profile-row"><span class="label">Age</span><span class="value" id="v-age">—</span></div>
+          <div class="profile-row"><span class="label">Location</span><span class="value" id="v-location">—</span></div>
+          <div class="profile-row"><span class="label">Platform</span><span class="value" id="v-platform">—</span></div>
+          <div class="profile-row"><span class="label">Payment Method</span><span class="value" id="v-payment">—</span></div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-title">Quick Actions</div>
+          <div class="flex gap-2 mt-1">
+            <a href="packages.html" class="btn btn-primary">Browse Packages</a>
+            <a href="deals.html" class="btn btn-outline">My Deals</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit mode -->
+      <div id="edit-mode" class="hidden">
+        <div class="card">
+          <div class="card-title">Edit Profile</div>
+          <div id="edit-alert"></div>
+          <form id="edit-form" novalidate>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="e-username" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="e-age" class="form-control" min="13" max="100">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="e-email" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <select id="e-location" class="form-control">
+                <option>United Kingdom</option>
+                <option>United States</option>
+                <option>Vietnam</option>
+                <option>Germany</option>
+                <option>France</option>
+                <option>Australia</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Platform</label>
+              <select id="e-platform" class="form-control">
+                <option>PC</option>
+                <option>PlayStation</option>
+                <option>Xbox</option>
+                <option>Nintendo Switch</option>
+                <option>Mobile</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="e-payment" class="form-control">
+                <option>VISA</option>
+                <option>Mastercard</option>
+                <option>PayPal</option>
+              </select>
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button type="submit" class="btn btn-success">Save Changes</button>
+              <button type="button" onclick="toggleEdit(false)" class="btn btn-outline">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="footer"><div class="container">© 2025 ProPlayHub</div></footer>
+
+<script src="auth.js"></script>
+<script>
+  requireAuth();
+
+  function loadProfile() {
+    const u = getUser();
+    if (!u) return;
+    document.getElementById('v-username').textContent = u.username;
+    document.getElementById('v-email').textContent    = u.email;
+    document.getElementById('v-age').textContent      = u.age;
+    document.getElementById('v-location').textContent = u.location;
+    document.getElementById('v-platform').textContent = u.platform;
+    document.getElementById('v-payment').textContent  = u.paymentMethod;
+  }
+
+  function toggleEdit(show) {
+    document.getElementById('view-mode').classList.toggle('hidden', show);
+    document.getElementById('edit-mode').classList.toggle('hidden', !show);
+    if (show) {
+      const u = getUser();
+      document.getElementById('e-username').value = u.username;
+      document.getElementById('e-age').value      = u.age;
+      document.getElementById('e-email').value    = u.email;
+      document.getElementById('e-location').value = u.location;
+      document.getElementById('e-platform').value = u.platform;
+      document.getElementById('e-payment').value  = u.paymentMethod;
+    }
+  }
+
+  document.getElementById('edit-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const u = getUser();
+    const updated = {
+      ...u,
+      username:      document.getElementById('e-username').value.trim(),
+      age:           parseInt(document.getElementById('e-age').value),
+      email:         document.getElementById('e-email').value.trim(),
+      location:      document.getElementById('e-location').value,
+      platform:      document.getElementById('e-platform').value,
+      paymentMethod: document.getElementById('e-payment').value
+    };
+    register(updated);
+    loadProfile();
+    toggleEdit(false);
+    // brief success flash
+    const card = document.querySelector('#view-mode .card');
+    const flash = document.createElement('div');
+    flash.className = 'alert alert-success';
+    flash.textContent = 'Profile updated successfully.';
+    card.insertAdjacentElement('afterbegin', flash);
+    setTimeout(() => flash.remove(), 3000);
+  });
+
+  loadProfile();
+</script>
+<script src="chat.js"></script>
+</body>
+</html>

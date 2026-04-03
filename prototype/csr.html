@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSR Portal — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="navbar-brand">ProPlay<span>Hub</span> <span style="color:var(--text-muted); font-size:0.75rem; font-weight:400; margin-left:0.5rem;">CSR Portal</span></a>
+    <ul class="navbar-links"></ul>
+    <div class="navbar-actions">
+      <a href="index.html" class="btn btn-outline btn-sm">Back to Site</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="form-card">
+    <h1>CSR Login</h1>
+    <p class="subtitle">Staff access only — enter your credentials</p>
+
+    <div id="alert-area"></div>
+
+    <form id="csr-login-form" novalidate>
+      <div class="form-group">
+        <label>Username <span class="required">*</span></label>
+        <input type="text" id="csr-username" class="form-control" placeholder="Staff username">
+        <div class="field-error" id="err-username"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Password <span class="required">*</span></label>
+        <input type="password" id="csr-password" class="form-control" placeholder="Staff password">
+        <div class="field-error" id="err-password"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg mt-2">Login to Dashboard</button>
+    </form>
+
+    <p class="text-center mt-2 text-muted" style="font-size:0.8rem;">
+      Demo credentials: <strong>admin</strong> / <strong>admin123</strong>
+    </p>
+  </div>
+</main>
+
+<footer class="footer"><div class="container">&copy; 2025 ProPlayHub &nbsp;|&nbsp; Internal CSR Portal</div></footer>
+
+<script src="chat.js"></script>
+<script>
+  // Check if already authenticated as CSR
+  (function() {
+    try {
+      const s = JSON.parse(sessionStorage.getItem('pph_csr_session'));
+      if (s && s.authenticated) {
+        window.location.href = 'csr-dashboard.html';
+      }
+    } catch(e) {}
+  })();
+
+  // Hardcoded CSR credentials
+  const CSR_CREDS = { username: 'admin', password: 'admin123' };
+
+  document.getElementById('csr-login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('csr-username').value.trim();
+    const password = document.getElementById('csr-password').value;
+
+    // Clear previous errors
+    ['username', 'password'].forEach(function(id) {
+      document.getElementById('err-' + id).classList.remove('show');
+      document.getElementById('csr-' + id).classList.remove('is-invalid');
+    });
+    document.getElementById('alert-area').innerHTML = '';
+
+    // Validate fields
+    if (!username) {
+      document.getElementById('err-username').textContent = 'Please enter your username.';
+      document.getElementById('err-username').classList.add('show');
+      document.getElementById('csr-username').classList.add('is-invalid');
+      return;
+    }
+    if (!password) {
+      document.getElementById('err-password').textContent = 'Please enter your password.';
+      document.getElementById('err-password').classList.add('show');
+      document.getElementById('csr-password').classList.add('is-invalid');
+      return;
+    }
+
+    // Check credentials
+    if (username === CSR_CREDS.username && password === CSR_CREDS.password) {
+      sessionStorage.setItem('pph_csr_session', JSON.stringify({ authenticated: true, username: username }));
+      window.location.href = 'csr-dashboard.html';
+    } else {
+      document.getElementById('alert-area').innerHTML =
+        '<div class="alert alert-danger">Invalid credentials. Please try again.</div>';
+    }
+  });
+</script>
+</body>
+</html>

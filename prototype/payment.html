@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="navbar-brand">ProPlay<span>Hub</span></a>
+  </div>
+</nav>
+
+<main>
+  <section class="section">
+    <div class="container" style="max-width:520px;">
+
+      <div class="steps mb-3">
+        <div class="step done">1. Plan</div>
+        <div class="step done">2. Checkout</div>
+        <div class="step active">3. Payment</div>
+        <div class="step">4. Confirm</div>
+      </div>
+
+      <div class="form-card" style="margin:0;">
+        <h1>Secure Payment</h1>
+        <p class="subtitle">Powered by VISACheck — your details are encrypted</p>
+
+        <div class="alert alert-info">
+          <strong>Prototype note:</strong> No real payment is processed. VISA validation is client-side only.
+        </div>
+
+        <div id="amount-display" class="card text-center mb-2" style="padding:1rem;">
+          <div class="text-muted" style="font-size:0.85rem;">Amount Due</div>
+          <div id="amount-val" style="font-size:2rem; font-weight:800; color:var(--accent);">—</div>
+          <div class="text-muted" style="font-size:0.8rem;">per month</div>
+        </div>
+
+        <form id="payment-form" novalidate>
+          <div class="form-group">
+            <label>Cardholder Name <span class="required">*</span></label>
+            <input type="text" id="card-name" class="form-control" placeholder="Full name on card">
+            <div class="field-error" id="err-name"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Card Number <span class="required">*</span></label>
+            <input type="text" id="card-number" class="form-control" placeholder="4xxx xxxx xxxx xxxx" maxlength="19">
+            <div class="field-error" id="err-number"></div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Expiry Date <span class="required">*</span></label>
+              <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY" maxlength="5">
+              <div class="field-error" id="err-expiry"></div>
+            </div>
+            <div class="form-group">
+              <label>CVV <span class="required">*</span></label>
+              <input type="text" id="card-cvv" class="form-control" placeholder="3 digits" maxlength="3">
+              <div class="field-error" id="err-cvv"></div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success btn-block btn-lg mt-2">
+            Pay Now via VISACheck
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer"><div class="container">© 2025 ProPlayHub</div></footer>
+
+<script src="auth.js"></script>
+<script>
+  // Show amount
+  const totalsRaw = sessionStorage.getItem('pph_totals');
+  if (totalsRaw) {
+    const t = JSON.parse(totalsRaw);
+    document.getElementById('amount-val').textContent = '£' + Number(t.total).toFixed(2);
+  }
+
+  // Format card number with spaces
+  document.getElementById('card-number').addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+    e.target.value = v.match(/.{1,4}/g)?.join(' ') || v;
+  });
+
+  // Format expiry
+  document.getElementById('card-expiry').addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
+    e.target.value = v;
+  });
+
+  // CVV digits only
+  document.getElementById('card-cvv').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3);
+  });
+
+  function showErr(id, msg) {
+    document.getElementById('err-' + id).textContent = msg;
+    document.getElementById('err-' + id).classList.add('show');
+    document.getElementById('card-' + id).classList.add('is-invalid');
+  }
+
+  function clearErrs() {
+    ['name','number','expiry','cvv'].forEach(id => {
+      document.getElementById('err-' + id).classList.remove('show');
+      document.getElementById('card-' + id).classList.remove('is-invalid', 'is-valid');
+    });
+  }
+
+  document.getElementById('payment-form').addEventListener('submit', e => {
+    e.preventDefault();
+    clearErrs();
+    let valid = true;
+
+    const name   = document.getElementById('card-name').value.trim();
+    const number = document.getElementById('card-number').value.replace(/\s/g, '');
+    const expiry = document.getElementById('card-expiry').value.trim();
+    const cvv    = document.getElementById('card-cvv').value.trim();
+
+    if (!name)                              { showErr('name',   'Cardholder name is required.');          valid = false; }
+    if (!number || number.length !== 16)    { showErr('number', 'Card number must be 16 digits.');        valid = false; }
+    else if (!number.startsWith('4'))       { showErr('number', 'Only VISA cards accepted (starts with 4).'); valid = false; }
+    if (!expiry || !/^\d{2}\/\d{2}$/.test(expiry)) { showErr('expiry', 'Enter expiry as MM/YY.'); valid = false; }
+    if (!cvv || cvv.length !== 3)           { showErr('cvv',    'CVV must be 3 digits.');                 valid = false; }
+
+    if (!valid) return;
+
+    // Save masked card info for confirmation
+    sessionStorage.setItem('pph_payment', JSON.stringify({
+      name,
+      last4: number.slice(-4),
+      expiry
+    }));
+    window.location.href = 'order-confirm.html';
+  });
+</script>
+<script src="chat.js"></script>
+</body>
+</html>

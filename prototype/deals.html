@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deals — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="navbar-brand">ProPlay<span>Hub</span></a>
+    <ul class="navbar-links">
+      <li><a href="packages.html">Packages</a></li>
+      <li><a href="deals.html" class="active">Deals</a></li>
+    </ul>
+    <div class="navbar-actions" id="nav-actions"></div>
+  </div>
+</nav>
+
+<main>
+  <div class="page-hero">
+    <div class="container">
+      <h1>Your Personalised Deals</h1>
+      <p id="deals-subtitle">Curated offers based on your gaming profile.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div id="platform-badge" class="mb-2"></div>
+      <div id="deals-grid" class="deals-grid"></div>
+
+      <div class="card mt-3">
+        <div class="card-title">All-Platform Deals</div>
+        <div id="all-deals" class="deals-grid mt-2"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer"><div class="container">© 2025 ProPlayHub</div></footer>
+
+<script src="auth.js"></script>
+<script>
+  // Nav
+  const navActions = document.getElementById('nav-actions');
+  navActions.innerHTML = isLoggedIn()
+    ? `<a href="account.html" class="btn btn-outline btn-sm">My Account</a><button onclick="logout()" class="btn btn-outline btn-sm">Logout</button>`
+    : `<a href="login.html" class="btn btn-outline btn-sm">Login</a><a href="register.html" class="btn btn-primary btn-sm">Register</a>`;
+
+  const DEALS_BY_PLATFORM = {
+    'PC': [
+      { title: '3 Months Pro for Price of 2', desc: 'Upgrade to Pro and get your 3rd month free. PC exclusive.', savings: 'Save £19.99' },
+      { title: 'Game Pass Bundle', desc: 'Monthly Game Pass add-on included free for 2 months.', savings: 'Save £6.98' }
+    ],
+    'PlayStation': [
+      { title: 'PS5 Tournament Entry', desc: 'Free entry to the ProPlayHub PS5 Championship Series.', savings: 'Value £9.99' },
+      { title: 'PlayStation Plus Synergy', desc: '10% off Elite plan when bundled with your PS Plus sub.', savings: 'Save £3.50/mo' }
+    ],
+    'Xbox': [
+      { title: 'Xbox Game Pass Crossover', desc: 'Extra 20 GB storage bonus for Xbox subscribers.', savings: 'Value £2.99/mo' },
+      { title: 'Starter → Pro Upgrade', desc: 'Upgrade at half price this month. Xbox only.', savings: 'Save £10.00' }
+    ],
+    'Nintendo Switch': [
+      { title: 'Handheld Hero Bundle', desc: 'Multi-Device add-on free for the first 3 months.', savings: 'Save £5.97' },
+      { title: 'Nintendo Direct Deal', desc: 'Exclusive 15% off Starter plan for Switch users.', savings: 'Save £1.50/mo' }
+    ],
+    'Mobile': [
+      { title: 'Mobile Gamer Promo', desc: 'First month free when subscribing via mobile app.', savings: 'Save up to £34.99' },
+      { title: 'Coach Session Bonus', desc: 'Free coaching session add-on for the first 2 months.', savings: 'Save £9.98' }
+    ]
+  };
+
+  const ALL_DEALS = [
+    { title: 'Refer a Friend', desc: 'Get £5 credit for every friend who subscribes using your referral code.', savings: '£5 credit each' },
+    { title: 'Annual Plan Discount', desc: 'Pay annually and save 2 months\' cost on any plan.', savings: 'Save up to £69.98/yr' },
+    { title: 'Student Discount', desc: 'Verified students get 20% off any plan with a valid student email.', savings: 'Save 20%' }
+  ];
+
+  function renderDeal(d) {
+    return `
+      <div class="deal-card">
+        <div class="deal-title">${d.title}</div>
+        <div class="deal-desc">${d.desc}</div>
+        <span class="deal-savings">💰 ${d.savings}</span>
+      </div>
+    `;
+  }
+
+  const user = getUser();
+  const platform = user ? user.platform : null;
+
+  if (platform && DEALS_BY_PLATFORM[platform]) {
+    document.getElementById('platform-badge').innerHTML =
+      `<span class="badge badge-accent" style="font-size:0.85rem; padding:0.4rem 0.9rem;">🎮 Showing deals for: ${platform}</span>`;
+    document.getElementById('deals-subtitle').textContent =
+      `Personalised offers for ${platform} players — based on your gaming profile.`;
+    document.getElementById('deals-grid').innerHTML =
+      `<div class="section-title">For ${platform} Players</div>` +
+      DEALS_BY_PLATFORM[platform].map(renderDeal).join('');
+  } else {
+    document.getElementById('deals-grid').innerHTML =
+      `<div class="alert alert-info">Login to see personalised deals based on your gaming platform.</div>`;
+  }
+
+  document.getElementById('all-deals').innerHTML = ALL_DEALS.map(renderDeal).join('');
+</script>
+<script src="chat.js"></script>
+</body>
+</html>

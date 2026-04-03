@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="navbar-brand">ProPlay<span>Hub</span></a>
+  </div>
+</nav>
+
+<main>
+  <section class="section">
+    <div class="container" style="max-width:680px;">
+
+      <div class="steps mb-3">
+        <div class="step done">1. Plan</div>
+        <div class="step active">2. Checkout</div>
+        <div class="step">3. Payment</div>
+        <div class="step">4. Confirm</div>
+      </div>
+
+      <div id="no-order" class="alert alert-warn hidden">
+        No plan selected. <a href="packages.html">Browse packages</a> first.
+      </div>
+
+      <div id="checkout-content">
+        <div class="card mb-2">
+          <div class="section-title">Order Summary</div>
+          <table class="summary-table" id="summary-table"></table>
+        </div>
+
+        <div class="card mb-2">
+          <div class="section-title">Discount Code</div>
+          <div class="flex gap-2">
+            <input type="text" id="promo-input" class="form-control" placeholder="e.g. PROMO15 or GAMING10" style="flex:1;">
+            <button class="btn btn-outline" onclick="applyPromo()">Apply</button>
+          </div>
+          <div id="promo-msg" class="mt-1" style="font-size:0.85rem;"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Total</div>
+          <table class="summary-table" id="total-table"></table>
+          <a href="payment.html" id="pay-btn" class="btn btn-primary btn-lg btn-block mt-3">Proceed to Payment</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="footer"><div class="container">© 2025 ProPlayHub</div></footer>
+
+<script src="auth.js"></script>
+<script src="discount.js"></script>
+<script>
+  const orderRaw = sessionStorage.getItem('pph_order');
+  if (!orderRaw) {
+    document.getElementById('no-order').classList.remove('hidden');
+    document.getElementById('checkout-content').classList.add('hidden');
+  } else {
+    const order = JSON.parse(orderRaw);
+    const pkg   = PACKAGES.find(p => p.id === order.packageId);
+    const addons = (order.addons || []).map(id => ADDONS.find(a => a.id === id)).filter(Boolean);
+
+    let promoCode = '';
+
+    function render() {
+      const totals = calcTotal(pkg.price, order.addons || [], promoCode);
+      // summary table
+      document.getElementById('summary-table').innerHTML = `
+        <tr><td>${pkg.name} Plan</td><td>${fmt(pkg.price)}/mo</td></tr>
+        ${addons.map(a => `<tr><td>${a.label}</td><td>+${fmt(a.price)}/mo</td></tr>`).join('')}
+      `;
+      // total table
+      document.getElementById('total-table').innerHTML = `
+        <tr><td>Subtotal</td><td>${fmt(totals.subtotal)}</td></tr>
+        <tr class="discount-row"><td>App Discount (15%)</td><td>−${fmt(totals.appDiscount)}</td></tr>
+        ${totals.promoDiscount > 0 ? `<tr class="discount-row"><td>Promo Code (${totals.promoLabel})</td><td>−${fmt(totals.promoDiscount)}</td></tr>` : ''}
+        <tr class="total-row"><td>Monthly Total</td><td>${fmt(totals.total)}</td></tr>
+      `;
+      // store totals for payment page
+      sessionStorage.setItem('pph_totals', JSON.stringify({ ...totals, packageName: pkg.name }));
+    }
+
+    function applyPromo() {
+      const code = document.getElementById('promo-input').value.trim();
+      const msg  = document.getElementById('promo-msg');
+      const found = applyCode(code);
+      if (!code) { msg.innerHTML = ''; return; }
+      if (found) {
+        promoCode = code;
+        msg.innerHTML = `<span class="text-success">✓ Code applied: ${found.label} (${found.pct}% off)</span>`;
+      } else {
+        promoCode = '';
+        msg.innerHTML = `<span class="text-danger">✗ Invalid code. Try PROMO15 or GAMING10.</span>`;
+      }
+      render();
+    }
+
+    render();
+  }
+</script>
+<script src="chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSR Dashboard — ProPlayHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="csr-dashboard.html" class="navbar-brand">ProPlay<span>Hub</span> <span style="color:var(--text-muted); font-size:0.75rem; font-weight:400; margin-left:0.5rem;">CSR Dashboard</span></a>
+    <ul class="navbar-links">
+      <li><a href="csr-dashboard.html" class="active">Customers</a></li>
+    </ul>
+    <div class="navbar-actions">
+      <span class="text-muted" style="font-size:0.8rem; margin-right:0.5rem;" id="csr-greeting"></span>
+      <button onclick="csrLogout()" class="btn btn-outline btn-sm">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <!-- Dashboard header -->
+  <section class="section" style="padding-bottom:0;">
+    <div class="container">
+      <div class="section-title">Registered Customers</div>
+      <p class="text-muted" style="font-size:0.88rem; margin-bottom:1.25rem;">
+        Click a customer row to view their full profile and send retention codes.
+      </p>
+    </div>
+  </section>
+
+  <!-- Customer table -->
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table class="csr-table" id="customer-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Platform</th>
+              <th>Plan</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tbody id="customer-tbody"></tbody>
+        </table>
+      </div>
+      <p class="text-muted mt-1" style="font-size:0.78rem;" id="customer-count"></p>
+    </div>
+  </section>
+
+  <!-- Customer detail panel (slide-in overlay) -->
+  <div class="csr-overlay hidden" id="detail-overlay" onclick="closeDetail(event)">
+    <div class="csr-panel" id="detail-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+        <h2 style="font-size:1.3rem; font-weight:700;">Customer Profile</h2>
+        <button onclick="closePanel()" class="btn btn-outline btn-sm">Close</button>
+      </div>
+      <div id="panel-content">
+        <div class="profile-row"><span class="label">Username</span><span class="value" id="p-username">-</span></div>
+        <div class="profile-row"><span class="label">Email</span><span class="value" id="p-email">-</span></div>
+        <div class="profile-row"><span class="label">Age</span><span class="value" id="p-age">-</span></div>
+        <div class="profile-row"><span class="label">Location</span><span class="value" id="p-location">-</span></div>
+        <div class="profile-row"><span class="label">Platform</span><span class="value" id="p-platform">-</span></div>
+        <div class="profile-row"><span class="label">Plan</span><span class="value" id="p-plan">-</span></div>
+        <div class="profile-row"><span class="label">Payment Method</span><span class="value" id="p-payment">-</span></div>
+      </div>
+
+      <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border);">
+        <div style="font-weight:700; margin-bottom:0.75rem;">Retention Tools</div>
+        <button class="btn btn-primary" id="send-code-btn" onclick="sendRetentionCode()">
+          Send Retention Code
+        </button>
+        <div id="code-result" class="mt-1" style="font-size:0.88rem;"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<footer class="footer"><div class="container">&copy; 2025 ProPlayHub &nbsp;|&nbsp; Internal CSR Portal</div></footer>
+
+<script src="chat.js"></script>
+<script>
+  /* ---- Auth guard ---- */
+  (function() {
+    try {
+      var s = JSON.parse(sessionStorage.getItem('pph_csr_session'));
+      if (!s || !s.authenticated) {
+        window.location.href = 'csr.html';
+        return;
+      }
+      document.getElementById('csr-greeting').textContent = 'Signed in as ' + s.username;
+    } catch(e) {
+      window.location.href = 'csr.html';
+    }
+  })();
+
+  function csrLogout() {
+    sessionStorage.removeItem('pph_csr_session');
+    window.location.href = 'csr.html';
+  }
+
+  /* ---- Demo customer seed data ---- */
+  var DEMO_CUSTOMERS = [
+    { username: 'shadowKnight',  email: 'shadow@gaming.co',     age: 22, location: 'United Kingdom', platform: 'PC',              plan: 'Pro',     paymentMethod: 'VISA' },
+    { username: 'neonBlaze',     email: 'neon.blaze@mail.com',   age: 19, location: 'United States',  platform: 'PlayStation',     plan: 'Elite',   paymentMethod: 'PayPal' },
+    { username: 'pixelQueen',    email: 'pixel.q@outlook.com',   age: 25, location: 'Germany',        platform: 'PC',              plan: 'Starter', paymentMethod: 'Mastercard' },
+    { username: 'turboFrag',     email: 'turbo.frag@gmail.com',  age: 17, location: 'France',         platform: 'Xbox',            plan: 'Pro',     paymentMethod: 'VISA' },
+    { username: 'lunarWolf',     email: 'lunar@proton.me',       age: 30, location: 'Australia',      platform: 'Nintendo Switch', plan: 'Starter', paymentMethod: 'PayPal' },
+    { username: 'viperStrike',   email: 'viper.s@hotmail.com',   age: 21, location: 'Vietnam',        platform: 'Mobile',          plan: 'Pro',     paymentMethod: 'Mastercard' },
+    { username: 'crystalEdge',   email: 'crystal.e@yahoo.com',   age: 28, location: 'United Kingdom', platform: 'PC',              plan: 'Elite',   paymentMethod: 'VISA' },
+    { username: 'blazeRunner',   email: 'blaze.run@gmail.com',   age: 16, location: 'United States',  platform: 'PlayStation',     plan: 'Starter', paymentMethod: 'PayPal' }
+  ];
+
+  /* ---- Build customer list ---- */
+  function getCustomers() {
+    var customers = DEMO_CUSTOMERS.slice(); // copy demo data
+
+    // Include real registered user from localStorage if present
+    try {
+      var realUser = JSON.parse(localStorage.getItem('pph_user'));
+      if (realUser && realUser.username && realUser.email) {
+        // Check if demo data already has this username
+        var exists = customers.some(function(c) { return c.username === realUser.username; });
+        if (!exists) {
+          customers.unshift({
+            username:      realUser.username,
+            email:         realUser.email,
+            age:           realUser.age || '-',
+            location:      realUser.location || '-',
+            platform:      realUser.platform || '-',
+            plan:          realUser.plan || 'Starter',
+            paymentMethod: realUser.paymentMethod || '-'
+          });
+        }
+      }
+    } catch(e) {}
+
+    return customers;
+  }
+
+  var allCustomers = getCustomers();
+  var selectedCustomer = null;
+
+  /* ---- Render table ---- */
+  function renderTable() {
+    var tbody = document.getElementById('customer-tbody');
+    tbody.innerHTML = '';
+
+    allCustomers.forEach(function(c, idx) {
+      var tr = document.createElement('tr');
+      tr.className = 'csr-row';
+      tr.setAttribute('data-index', idx);
+      tr.innerHTML =
+        '<td>' + escHtml(c.username) + '</td>' +
+        '<td>' + escHtml(c.email) + '</td>' +
+        '<td><span class="badge badge-accent">' + escHtml(c.platform) + '</span></td>' +
+        '<td><span class="badge ' + planBadge(c.plan) + '">' + escHtml(c.plan) + '</span></td>' +
+        '<td>' + escHtml(c.location) + '</td>';
+      tr.addEventListener('click', function() { openDetail(idx); });
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('customer-count').textContent = allCustomers.length + ' customer(s) registered';
+  }
+
+  function planBadge(plan) {
+    if (plan === 'Elite') return 'badge-warn';
+    if (plan === 'Pro')   return 'badge-primary';
+    return 'badge-success';
+  }
+
+  function escHtml(str) {
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  /* ---- Detail panel ---- */
+  function openDetail(idx) {
+    selectedCustomer = allCustomers[idx];
+    document.getElementById('p-username').textContent = selectedCustomer.username;
+    document.getElementById('p-email').textContent    = selectedCustomer.email;
+    document.getElementById('p-age').textContent      = selectedCustomer.age;
+    document.getElementById('p-location').textContent = selectedCustomer.location;
+    document.getElementById('p-platform').textContent = selectedCustomer.platform;
+    document.getElementById('p-plan').textContent     = selectedCustomer.plan;
+    document.getElementById('p-payment').textContent  = selectedCustomer.paymentMethod;
+
+    // Reset code result area
+    document.getElementById('code-result').innerHTML = '';
+    document.getElementById('send-code-btn').disabled = false;
+
+    // Highlight selected row
+    document.querySelectorAll('.csr-row').forEach(function(r) { r.classList.remove('selected'); });
+    var row = document.querySelector('.csr-row[data-index="' + idx + '"]');
+    if (row) row.classList.add('selected');
+
+    // Show panel
+    document.getElementById('detail-overlay').classList.remove('hidden');
+    setTimeout(function() {
+      document.getElementById('detail-panel').classList.add('open');
+    }, 10);
+  }
+
+  function closePanel() {
+    document.getElementById('detail-panel').classList.remove('open');
+    setTimeout(function() {
+      document.getElementById('detail-overlay').classList.add('hidden');
+    }, 300);
+    selectedCustomer = null;
+  }
+
+  function closeDetail(e) {
+    // Close if clicking overlay background (not the panel itself)
+    if (e.target === document.getElementById('detail-overlay')) {
+      closePanel();
+    }
+  }
+
+  /* ---- Retention code ---- */
+  function sendRetentionCode() {
+    if (!selectedCustomer) return;
+
+    // Generate random 4-digit code
+    var code = 'PPH-PROMO-' + (1000 + Math.floor(Math.random() * 9000));
+
+    // Show personalised code in the panel
+    document.getElementById('code-result').innerHTML =
+      '<div class="alert alert-success" style="margin-top:0.75rem;">' +
+        '<strong>Code generated:</strong> ' + code + '<br>' +
+        '<span class="text-muted" style="color:var(--text-muted);">Locked to ' + escHtml(selectedCustomer.username) + ' (' + escHtml(selectedCustomer.email) + ')</span>' +
+      '</div>';
+
+    // Show toast notification
+    showToast('\u2713 ' + code + ' sent to ' + selectedCustomer.email);
+  }
+
+  /* ---- Toast ---- */
+  function showToast(message) {
+    var container = document.getElementById('toast-container');
+    var toast = document.createElement('div');
+    toast.className = 'csr-toast';
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(function() { toast.classList.add('show'); }, 10);
+
+    // Auto-dismiss after 3 seconds
+    setTimeout(function() {
+      toast.classList.remove('show');
+      setTimeout(function() { toast.remove(); }, 300);
+    }, 3000);
+  }
+
+  /* ---- Init ---- */
+  renderTable();
+</script>
+</body>
+</html>
