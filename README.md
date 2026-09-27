@@ -6,11 +6,10 @@
 
 A gaming subscription platform prototype — browse plans, manage your profile, and unlock exclusive deals.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-brightgreen?style=for-the-badge&logo=digitalocean)](https://proplayhub-wjvy8.ondigitalocean.app)
+**Status:** Local frontend prototype; no working hosted demo is currently verified.
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![DigitalOcean](https://img.shields.io/badge/Deployed%20on-DigitalOcean-0080FF?style=for-the-badge&logo=digitalocean&logoColor=white)
 
 </div>
 
